@@ -1,5 +1,5 @@
 /******************************************************************************
-TinyBME280Def.h
+TinyBME280.h
 
 This code is released under the [MIT License](http://opensource.org/licenses/MIT).
 Please review the LICENSE.md file included with this example. If you have any questions 
@@ -9,8 +9,8 @@ Distributed as-is; no warranty is given.
 
 ******************************************************************************/
 
-#ifndef __TINY_BME280_DEF_H__
-#define __TINY_BME280_DEF_H__
+#ifndef __TINY_BME280_H__
+#define __TINY_BME280_H__
 
 #if (ARDUINO >= 100)
 #include "Arduino.h"
@@ -89,7 +89,7 @@ Distributed as-is; no warranty is given.
 #define BME280_HUMIDITY_MSB_REG			0xFD //Humidity MSB
 #define BME280_HUMIDITY_LSB_REG			0xFE //Humidity LSB
 
-#include "src/TinyBME280.h"
-#include "src/TinyBME280.cpp"
+#include "src/TinyBME280Impl.h"
+#include "src/TinyBME280Impl.cpp"
 
-#endif  // End of __TINY_BME280_DEF_H__ definition check
+#endif  // End of __TINY_BME280_H__ definition check

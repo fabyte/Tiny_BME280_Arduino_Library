@@ -1,5 +1,5 @@
 /******************************************************************************
-TinyBME280.h
+TinyBME280Impl.h
 
 This code is released under the [MIT License](http://opensource.org/licenses/MIT).
 Please review the LICENSE.md file included with this example. If you have any questions 
@@ -8,8 +8,8 @@ Distributed as-is; no warranty is given.
 
 ******************************************************************************/
 
-#ifndef __TINY_BME280_H__
-#define __TINY_BME280_H__
+#ifndef __TINY_BME280_IMPL_H__
+#define __TINY_BME280_IMPL_H__
 
 namespace tiny
 {
@@ -141,4 +141,4 @@ private:
 
 } // namespace tiny
 
-#endif  // End of __TINY_BME280_H__ definition check
+#endif  // End of __TINY_BME280_IMPL_H__ definition check
