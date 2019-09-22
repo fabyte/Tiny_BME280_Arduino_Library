@@ -128,7 +128,7 @@ struct SensorSettings
 	uint8_t tempOverSample;
 	uint8_t pressOverSample;
 	uint8_t humidOverSample;
-    float tempCorrection; // correction of temperature - added to the result
+    uint32_t tempCorrection; // correction of temperature - added to the result
 };
 
 //Used to hold the calibration constants.  These are used
@@ -194,30 +194,20 @@ class BME280
 	void setFilter(uint8_t filterSetting); //Set the filter
 	
 	void setI2CAddress(uint8_t i2caddress); //Set the address the library should use to communicate. Use if address jumper is closed (0x76).
-
-	void setReferencePressure(float refPressure); //Allows user to set local sea level reference pressure
-	float getReferencePressure();
 	
 	bool isMeasuring(void); //Returns true while the device is taking measurement
 	
 	//Software reset routine
 	void reset( void );
 	
-    //Returns the values as floats.
-    float readFloatPressure( void );
-	float readFloatAltitudeMeters( void );
-	float readFloatAltitudeFeet( void );
+	//Returns the values as 32 bit fixed point integers.
+	uint32_t readFixedPressure( void );
 	
-	float readFloatHumidity( void );
+	uint32_t readFixedHumidity( void );
 
 	//Temperature related methods
-    float readTempC( void );
-    float readTempF( void );
-
-	//Dewpoint related methods
-	//From Pavel-Sayekat: https://github.com/sparkfun/SparkFun_BME280_Breakout_Board/pull/6/files
-    double dewPointC(void);
-    double dewPointF(void);
+	int32_t readFixedTempC( void );
+	int32_t readFixedTempF( void );
 	
     //The following utilities read and write
 
@@ -241,8 +231,6 @@ private:
 	#ifdef SoftwareWire_h
 	SoftwareWire *_softPort = NO_WIRE; //Or, the generic connection to software wire port
 	#endif
-	
-	float _referencePressure = 101325.0; //Default but is changeable
 };
 
 #endif  // End of __BME280_H__ definition check

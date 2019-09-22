@@ -372,65 +372,39 @@ void BME280::reset( void )
 //  Pressure Section
 //
 //****************************************************************************//
-float BME280::readFloatPressure( void )
+uint32_t BME280::readFixedPressure( void )
 {
-
-	// Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
-	// Output value of “24674867” represents 24674867/256 = 96386.2 Pa = 963.862 hPa
-    uint8_t buffer[3];
+	// Returns pressure in Pa as unsigned 32 bit integer. Output value of "96386" equals 96386Pa = 963.86 hPa
+	uint8_t buffer[3];
 	readRegisterRegion(buffer, BME280_PRESSURE_MSB_REG, 3);
-    int32_t adc_P = ((uint32_t)buffer[0] << 12) | ((uint32_t)buffer[1] << 4) | ((buffer[2] >> 4) & 0x0F);
-	
-	int64_t var1, var2, p_acc;
-	var1 = ((int64_t)t_fine) - 128000;
-	var2 = var1 * var1 * (int64_t)calibration.dig_P6;
-	var2 = var2 + ((var1 * (int64_t)calibration.dig_P5)<<17);
-	var2 = var2 + (((int64_t)calibration.dig_P4)<<35);
-	var1 = ((var1 * var1 * (int64_t)calibration.dig_P3)>>8) + ((var1 * (int64_t)calibration.dig_P2)<<12);
-	var1 = (((((int64_t)1)<<47)+var1))*((int64_t)calibration.dig_P1)>>33;
+	int32_t adc_P = ((uint32_t)buffer[0] << 12) | ((uint32_t)buffer[1] << 4) | ((buffer[2] >> 4) & 0x0F);
+
+	int32_t var1, var2;
+	uint32_t p_acc;
+	var1 = ((int32_t)t_fine>>1) - (int32_t)64000;
+	var2 = (((var1>>2) * (var1>>2)) >> 11) * (int32_t)calibration.dig_P6;
+	var2 = var2 + ((var1 * ((int32_t)calibration.dig_P5)<<1));
+	var2 = (var2>>2) + (((int32_t)calibration.dig_P4)<<16);
+	var1 = (((int32_t)calibration.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((((int32_t)calibration.dig_P2) * var1)>>1))>>18);
+	var1 = ((((32768+var1))*((int32_t)calibration.dig_P1))>>15);
 	if (var1 == 0)
 	{
 		return 0; // avoid exception caused by division by zero
 	}
-	p_acc = 1048576 - adc_P;
-	p_acc = (((p_acc<<31) - var2)*3125)/var1;
-	var1 = (((int64_t)calibration.dig_P9) * (p_acc>>13) * (p_acc>>13)) >> 25;
-	var2 = (((int64_t)calibration.dig_P8) * p_acc) >> 19;
-	p_acc = ((p_acc + var1 + var2) >> 8) + (((int64_t)calibration.dig_P7)<<4);
-	
-	return (float)p_acc / 256.0;
-	
-}
+	p_acc = (((uint32_t)(((int32_t)1048576 - adc_P)-(var2>>12)))*3125);
+	if (p_acc < 0x80000000)
+	{
+		p_acc = (p_acc<<1) / ((uint32_t)var1);
+	}
+	else
+	{
+		p_acc = (p_acc / (uint32_t)var1) * 2;
+	}
+	var1 = (((int32_t)calibration.dig_P9) * ((int32_t)(((p_acc>>3) * (p_acc>>3))>>13)))>>12;
+	var2 = (((int32_t)(p_acc>>2)) * ((int32_t)calibration.dig_P8)) >> 13;
+	p_acc = (uint32_t)((int32_t)p_acc + ((var1 + var2 + (int32_t)calibration.dig_P7) >> 4));
 
-//Sets the internal variable _referencePressure so the 
-void BME280::setReferencePressure(float refPressure)
-{
-	_referencePressure = refPressure;
-}
-
-//Return the local reference pressure
-float BME280::getReferencePressure()
-{
-	return(_referencePressure);
-}
-
-float BME280::readFloatAltitudeMeters( void )
-{
-	float heightOutput = 0;
-	
-	//heightOutput = ((float)-45846.2)*(pow(((float)readFloatPressure()/(float)_referencePressure), 0.190263) - (float)1);
-	heightOutput = ((float)-44330.77)*(pow(((float)readFloatPressure()/(float)_referencePressure), 0.190263) - (float)1); //Corrected, see issue 30
-	return heightOutput;
-	
-}
-
-float BME280::readFloatAltitudeFeet( void )
-{
-	float heightOutput = 0;
-	
-	heightOutput = readFloatAltitudeMeters() * 3.28084;
-	return heightOutput;
-	
+	return p_acc;
 }
 
 //****************************************************************************//
@@ -438,15 +412,14 @@ float BME280::readFloatAltitudeFeet( void )
 //  Humidity Section
 //
 //****************************************************************************//
-float BME280::readFloatHumidity( void )
+uint32_t BME280::readFixedHumidity( void )
 {
-	
-	// Returns humidity in %RH as unsigned 32 bit integer in Q22. 10 format (22 integer and 10 fractional bits).
-	// Output value of “47445” represents 47445/1024 = 46. 333 %RH
-    uint8_t buffer[2];
+	// Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
+	// Output value of “47445” represents 47445/1024 = 46.333 %RH
+	uint8_t buffer[2];
 	readRegisterRegion(buffer, BME280_HUMIDITY_MSB_REG, 2);
-    int32_t adc_H = ((uint32_t)buffer[0] << 8) | ((uint32_t)buffer[1]);
-	
+	int32_t adc_H = ((uint32_t)buffer[0] << 8) | ((uint32_t)buffer[1]);
+
 	int32_t var1;
 	var1 = (t_fine - ((int32_t)76800));
 	var1 = (((((adc_H << 14) - (((int32_t)calibration.dig_H4) << 20) - (((int32_t)calibration.dig_H5) * var1)) +
@@ -456,7 +429,7 @@ float BME280::readFloatHumidity( void )
 	var1 = (var1 < 0 ? 0 : var1);
 	var1 = (var1 > 419430400 ? 419430400 : var1);
 
-	return (float)(var1>>12) / 1024.0;
+	return (uint32_t)var1;
 }
 
 //****************************************************************************//
@@ -465,7 +438,7 @@ float BME280::readFloatHumidity( void )
 //
 //****************************************************************************//
 
-float BME280::readTempC( void )
+int32_t BME280::readFixedTempC( void )
 {
 	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
 	// t_fine carries fine temperature as global value
@@ -476,55 +449,19 @@ float BME280::readTempC( void )
     int32_t adc_T = ((uint32_t)buffer[0] << 12) | ((uint32_t)buffer[1] << 4) | ((buffer[2] >> 4) & 0x0F);
 
 	//By datasheet, calibrate
-	int64_t var1, var2;
+	int32_t var1, var2;
 
 	var1 = ((((adc_T>>3) - ((int32_t)calibration.dig_T1<<1))) * ((int32_t)calibration.dig_T2)) >> 11;
 	var2 = (((((adc_T>>4) - ((int32_t)calibration.dig_T1)) * ((adc_T>>4) - ((int32_t)calibration.dig_T1))) >> 12) *
 	((int32_t)calibration.dig_T3)) >> 14;
 	t_fine = var1 + var2;
-	float output = (t_fine * 5 + 128) >> 8;
 
-	output = output / 100 + settings.tempCorrection;
-	
-	return output;
+	return ((t_fine * 5 + 128) >> 8) + settings.tempCorrection;
 }
 
-float BME280::readTempF( void )
+int32_t BME280::readFixedTempF( void )
 {
-	float output = readTempC();
-	output = (output * 9) / 5 + 32;
-
-	return output;
-}
-
-//****************************************************************************//
-//
-//  Dew point Section
-//
-//****************************************************************************//
-// Returns Dew point in DegC
-double BME280::dewPointC(void)
-{
-  double celsius = readTempC(); 
-  double humidity = readFloatHumidity();
-  // (1) Saturation Vapor Pressure = ESGG(T)
-  double RATIO = 373.15 / (273.15 + celsius);
-  double RHS = -7.90298 * (RATIO - 1);
-  RHS += 5.02808 * log10(RATIO);
-  RHS += -1.3816e-7 * (pow(10, (11.344 * (1 - 1/RATIO ))) - 1) ;
-  RHS += 8.1328e-3 * (pow(10, (-3.49149 * (RATIO - 1))) - 1) ;
-  RHS += log10(1013.246);
-         // factor -3 is to adjust units - Vapor Pressure SVP * humidity
-  double VP = pow(10, RHS - 3) * humidity;
-         // (2) DEWPOINT = F(Vapor Pressure)
-  double T = log(VP/0.61078);   // temp var
-  return (241.88 * T) / (17.558 - T);
-}
-
-// Returns Dew point in DegF
-double BME280::dewPointF(void)
-{
-	return(dewPointC() * 1.8 + 32); //Convert C to F
+	return (readFixedTempC() * 9) / 5 + 3200;
 }
 
 //****************************************************************************//
