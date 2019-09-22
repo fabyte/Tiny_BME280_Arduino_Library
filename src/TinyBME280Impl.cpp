@@ -2,7 +2,7 @@
 TinyBME280Impl.cpp
 
 This code is released under the [MIT License](http://opensource.org/licenses/MIT).
-Please review the LICENSE.md file included with this example. If you have any questions 
+Please review the LICENSE.md file included with this example. If you have any questions
 or concerns with licensing, please contact techsupport@sparkfun.com.
 Distributed as-is; no warranty is given.
 ******************************************************************************/
@@ -78,7 +78,7 @@ tiny::BME280::BME280( void )
 //  Configuration section
 //
 //  This uses the stored SensorSettings to start the IMU
-//  Use statements such as "mySensor.settings.commInterface = SPI_MODE;" to 
+//  Use statements such as "mySensor.settings.commInterface = SPI_MODE;" to
 //  configure before calling .begin();
 //
 //****************************************************************************//
@@ -155,7 +155,7 @@ uint8_t tiny::BME280::begin()
 	calibration.dig_H6 = ((int8_t)readRegister(BME280_DIG_H6_REG));
 
 	setMode(MODE_NORMAL); //Go!
-	
+
 	return(readRegister(BME280_CHIP_ID_REG)); //Should return 0x60
 }
 
@@ -164,7 +164,7 @@ uint8_t tiny::BME280::begin()
 bool tiny::BME280::beginSPI(uint8_t csPin)
 {
 	chipSelectPin = csPin;
-	
+
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
 	return(false);
@@ -195,7 +195,7 @@ bool tiny::BME280::beginI2C(TwoWire &wirePort)
 {
 	_hardPort = &wirePort;
 	_wireType = HARD_WIRE;
-	
+
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
 	return(false);
@@ -222,7 +222,7 @@ bool tiny::BME280::beginI2C(SoftwareWire& wirePort)
 void tiny::BME280::setMode(uint8_t mode)
 {
 	if(mode > 0b11) mode = 0; //Error check. Default to sleep mode
-	
+
 	uint8_t controlData = readRegister(BME280_CTRL_MEAS_REG);
 	controlData &= ~( (1<<1) | (1<<0) ); //Clear the mode[1:0] bits
 	controlData |= mode; //Set
@@ -252,7 +252,7 @@ uint8_t tiny::BME280::getMode()
 void tiny::BME280::setStandbyTime(uint8_t timeSetting)
 {
 	if(timeSetting > 0b111) timeSetting = 0; //Error check. Default to 0.5ms
-	
+
 	uint8_t controlData = readRegister(BME280_CONFIG_REG);
 	controlData &= ~( (1<<7) | (1<<6) | (1<<5) ); //Clear the 7/6/5 bits
 	controlData |= (timeSetting << 5); //Align with bits 7/6/5
@@ -269,7 +269,7 @@ void tiny::BME280::setStandbyTime(uint8_t timeSetting)
 void tiny::BME280::setFilter(uint8_t filterSetting)
 {
 	if(filterSetting > 0b111) filterSetting = 0; //Error check. Default to filter off
-	
+
 	uint8_t controlData = readRegister(BME280_CONFIG_REG);
 	controlData &= ~( (1<<4) | (1<<3) | (1<<2) ); //Clear the 4/3/2 bits
 	controlData |= (filterSetting << 2); //Align with bits 4/3/2
@@ -282,9 +282,9 @@ void tiny::BME280::setFilter(uint8_t filterSetting)
 void tiny::BME280::setTempOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
-	
+
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
-	
+
 	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_t bits (7, 6, 5) to overSampleAmount
@@ -292,7 +292,7 @@ void tiny::BME280::setTempOverSample(uint8_t overSampleAmount)
 	controlData &= ~( (1<<7) | (1<<6) | (1<<5) ); //Clear bits 765
 	controlData |= overSampleAmount << 5; //Align overSampleAmount to bits 7/6/5
 	writeRegister(BME280_CTRL_MEAS_REG, controlData);
-	
+
 	setMode(originalMode); //Return to the original user's choice
 }
 
@@ -302,9 +302,9 @@ void tiny::BME280::setTempOverSample(uint8_t overSampleAmount)
 void tiny::BME280::setPressureOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
-	
+
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
-	
+
 	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_p bits (4, 3, 2) to overSampleAmount
@@ -312,7 +312,7 @@ void tiny::BME280::setPressureOverSample(uint8_t overSampleAmount)
 	controlData &= ~( (1<<4) | (1<<3) | (1<<2) ); //Clear bits 432
 	controlData |= overSampleAmount << 2; //Align overSampleAmount to bits 4/3/2
 	writeRegister(BME280_CTRL_MEAS_REG, controlData);
-	
+
 	setMode(originalMode); //Return to the original user's choice
 }
 
@@ -322,9 +322,9 @@ void tiny::BME280::setPressureOverSample(uint8_t overSampleAmount)
 void tiny::BME280::setHumidityOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
-	
+
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
-	
+
 	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_h bits (2, 1, 0) to overSampleAmount
@@ -341,27 +341,27 @@ void tiny::BME280::setHumidityOverSample(uint8_t overSampleAmount)
 //These are used in the humidty, pressure, and temp oversample functions
 uint8_t tiny::BME280::checkSampleValue(uint8_t userValue)
 {
-	switch(userValue) 
+	switch(userValue)
 	{
-		case(0): 
+		case(0):
 			return 0;
 			break; //Valid
-		case(1): 
+		case(1):
 			return 1;
 			break; //Valid
-		case(2): 
+		case(2):
 			return 2;
 			break; //Valid
-		case(4): 
+		case(4):
 			return 3;
 			break; //Valid
-		case(8): 
+		case(8):
 			return 4;
 			break; //Valid
-		case(16): 
+		case(16):
 			return 5;
 			break; //Valid
-		default: 
+		default:
 			return 1; //Default to 1x
 			break; //Good
 	}
@@ -378,7 +378,7 @@ bool tiny::BME280::isMeasuring(void)
 void tiny::BME280::reset( void )
 {
 	writeRegister(BME280_RST_REG, 0xB6);
-	
+
 }
 
 //****************************************************************************//
@@ -458,9 +458,9 @@ int32_t tiny::BME280::readFixedTempC( void )
 	// t_fine carries fine temperature as global value
 
 	//get the reading (adc_T);
-    uint8_t buffer[3];
+	uint8_t buffer[3];
 	readRegisterRegion(buffer, BME280_TEMPERATURE_MSB_REG, 3);
-    int32_t adc_T = ((uint32_t)buffer[0] << 12) | ((uint32_t)buffer[1] << 4) | ((buffer[2] >> 4) & 0x0F);
+	int32_t adc_T = ((uint32_t)buffer[0] << 12) | ((uint32_t)buffer[1] << 4) | ((buffer[2] >> 4) & 0x0F);
 
 	//By datasheet, calibrate
 	int32_t var1, var2;
@@ -526,7 +526,7 @@ void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, u
 			break;
 	}
 	#endif
-	
+
 	#ifdef TINY_BME280_SPI
 	// take the chip select low to select the device:
 	digitalWrite(chipSelectPin, LOW);
@@ -549,7 +549,7 @@ uint8_t tiny::BME280::readRegister(uint8_t offset)
 {
 	//Return value
 	uint8_t result = 0;
-	
+
 	#ifdef TINY_BME280_I2C
 	uint8_t numBytes = 1;
 	switch(_wireType)
@@ -565,7 +565,7 @@ uint8_t tiny::BME280::readRegister(uint8_t offset)
 				result = _hardPort->read(); // receive a byte as a proper uint8_t
 			}
 			break;
-		
+
 		case(SOFT_WIRE):
 		#ifdef SoftwareWire_h
 			_softPort->beginTransmission(I2CAddress);
@@ -601,7 +601,7 @@ int16_t tiny::BME280::readRegisterInt16( uint8_t offset )
 	uint8_t myBuffer[2];
 	readRegisterRegion(myBuffer, offset, 2);  //Does memory transfer
 	int16_t output = (int16_t)myBuffer[0] | int16_t(myBuffer[1] << 8);
-	
+
 	return output;
 }
 
