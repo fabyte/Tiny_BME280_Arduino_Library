@@ -121,13 +121,6 @@ struct SensorSettings
     uint8_t I2CAddress;
     uint8_t chipSelectPin;
 	
-	//Deprecated settings
-	uint8_t runMode;
-	uint8_t tStandby;
-	uint8_t filter;
-	uint8_t tempOverSample;
-	uint8_t pressOverSample;
-	uint8_t humidOverSample;
     uint32_t tempCorrection; // correction of temperature - added to the result
 };
 

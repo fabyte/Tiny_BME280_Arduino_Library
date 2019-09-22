@@ -40,14 +40,7 @@ BME280::BME280( void )
 
 	settings.chipSelectPin = 10; //Select CS pin for SPI
 	
-	//These are deprecated settings
-	settings.runMode = 3; //Normal/Run
-	settings.tStandby = 0; //0.5ms
-	settings.filter = 0; //Filter off
-	settings.tempOverSample = 1;
-	settings.pressOverSample = 1;
-	settings.humidOverSample = 1;
-    settings.tempCorrection = 0.0; // correction of temperature - added to the result
+	settings.tempCorrection = 0; // correction of temperature - added to the result
 }
 
 
@@ -140,14 +133,6 @@ uint8_t BME280::begin()
 	calibration.dig_H5 = ((int16_t)((readRegister(BME280_DIG_H5_MSB_REG) << 4) + ((readRegister(BME280_DIG_H4_LSB_REG) >> 4) & 0x0F)));
 	calibration.dig_H6 = ((int8_t)readRegister(BME280_DIG_H6_REG));
 
-	//Most of the time the sensor will be init with default values
-	//But in case user has old/deprecated code, use the settings.x values
-	setStandbyTime(settings.tStandby);
-	setFilter(settings.filter);
-	setPressureOverSample(settings.pressOverSample); //Default of 1x oversample
-	setHumidityOverSample(settings.humidOverSample); //Default of 1x oversample
-	setTempOverSample(settings.tempOverSample); //Default of 1x oversample
-	
 	setMode(MODE_NORMAL); //Go!
 	
 	return(readRegister(BME280_CHIP_ID_REG)); //Should return 0x60
