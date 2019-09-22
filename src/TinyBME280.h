@@ -102,6 +102,9 @@ TODO:
 #define BME280_HUMIDITY_MSB_REG			0xFD //Humidity MSB
 #define BME280_HUMIDITY_LSB_REG			0xFE //Humidity LSB
 
+namespace tiny
+{
+
 //Class SensorSettings.  This object is used to hold settings data.  The application
 //uses this classes' data directly.  The settings are adopted and sent to the sensor
 //at special times, such as .begin.  Some are used for doing math.
@@ -225,5 +228,7 @@ private:
 	SoftwareWire *_softPort = NO_WIRE; //Or, the generic connection to software wire port
 	#endif
 };
+
+} // namespace tiny
 
 #endif  // End of __BME280_H__ definition check

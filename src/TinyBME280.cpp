@@ -29,7 +29,7 @@ Distributed as-is; no warranty is given.
 //****************************************************************************//
 
 //Constructor -- Specifies default configuration
-BME280::BME280( void )
+tiny::BME280::BME280( void )
 {
 	//Construct with these default settings
 
@@ -53,7 +53,7 @@ BME280::BME280( void )
 //  configure before calling .begin();
 //
 //****************************************************************************//
-uint8_t BME280::begin()
+uint8_t tiny::BME280::begin()
 {
 	delay(2);  //Make sure sensor had enough time to turn on. BME280 requires 2ms to start up.
 
@@ -139,7 +139,7 @@ uint8_t BME280::begin()
 }
 
 //Begin comm with BME280 over SPI
-bool BME280::beginSPI(uint8_t csPin)
+bool tiny::BME280::beginSPI(uint8_t csPin)
 {
 	settings.chipSelectPin = csPin;
 	settings.commInterface = SPI_MODE;
@@ -150,7 +150,7 @@ bool BME280::beginSPI(uint8_t csPin)
 }
 
 //Begin comm with BME280 over I2C
-bool BME280::beginI2C(TwoWire &wirePort)
+bool tiny::BME280::beginI2C(TwoWire &wirePort)
 {
 	_hardPort = &wirePort;
 	_wireType = HARD_WIRE;
@@ -165,7 +165,7 @@ bool BME280::beginI2C(TwoWire &wirePort)
 
 //Begin comm with BME280 over software I2C
 #ifdef SoftwareWire_h
-bool BME280::beginI2C(SoftwareWire& wirePort)
+bool tiny::BME280::beginI2C(SoftwareWire& wirePort)
 {
 	_softPort = &wirePort;
 	_wireType = SOFT_WIRE;
@@ -183,7 +183,7 @@ bool BME280::beginI2C(SoftwareWire& wirePort)
 // Mode 00 = Sleep
 // 01 and 10 = Forced
 // 11 = Normal mode
-void BME280::setMode(uint8_t mode)
+void tiny::BME280::setMode(uint8_t mode)
 {
 	if(mode > 0b11) mode = 0; //Error check. Default to sleep mode
 	
@@ -197,7 +197,7 @@ void BME280::setMode(uint8_t mode)
 //Mode 00 = Sleep
 // 01 and 10 = Forced
 // 11 = Normal mode
-uint8_t BME280::getMode()
+uint8_t tiny::BME280::getMode()
 {
 	uint8_t controlData = readRegister(BME280_CTRL_MEAS_REG);
 	return(controlData & 0b00000011); //Clear bits 7 through 2
@@ -213,7 +213,7 @@ uint8_t BME280::getMode()
 //  5, 1000ms
 //  6, 10ms
 //  7, 20ms
-void BME280::setStandbyTime(uint8_t timeSetting)
+void tiny::BME280::setStandbyTime(uint8_t timeSetting)
 {
 	if(timeSetting > 0b111) timeSetting = 0; //Error check. Default to 0.5ms
 	
@@ -230,7 +230,7 @@ void BME280::setStandbyTime(uint8_t timeSetting)
 //  2, coefficients = 4
 //  3, coefficients = 8
 //  4, coefficients = 16
-void BME280::setFilter(uint8_t filterSetting)
+void tiny::BME280::setFilter(uint8_t filterSetting)
 {
 	if(filterSetting > 0b111) filterSetting = 0; //Error check. Default to filter off
 	
@@ -243,7 +243,7 @@ void BME280::setFilter(uint8_t filterSetting)
 //Set the temperature oversample value
 //0 turns off temp sensing
 //1 to 16 are valid over sampling values
-void BME280::setTempOverSample(uint8_t overSampleAmount)
+void tiny::BME280::setTempOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
 	
@@ -263,7 +263,7 @@ void BME280::setTempOverSample(uint8_t overSampleAmount)
 //Set the pressure oversample value
 //0 turns off pressure sensing
 //1 to 16 are valid over sampling values
-void BME280::setPressureOverSample(uint8_t overSampleAmount)
+void tiny::BME280::setPressureOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
 	
@@ -283,7 +283,7 @@ void BME280::setPressureOverSample(uint8_t overSampleAmount)
 //Set the humidity oversample value
 //0 turns off humidity sensing
 //1 to 16 are valid over sampling values
-void BME280::setHumidityOverSample(uint8_t overSampleAmount)
+void tiny::BME280::setHumidityOverSample(uint8_t overSampleAmount)
 {
 	overSampleAmount = checkSampleValue(overSampleAmount); //Error check
 	
@@ -303,7 +303,7 @@ void BME280::setHumidityOverSample(uint8_t overSampleAmount)
 //Validates an over sample value
 //Allowed values are 0 to 16
 //These are used in the humidty, pressure, and temp oversample functions
-uint8_t BME280::checkSampleValue(uint8_t userValue)
+uint8_t tiny::BME280::checkSampleValue(uint8_t userValue)
 {
 	switch(userValue) 
 	{
@@ -333,20 +333,20 @@ uint8_t BME280::checkSampleValue(uint8_t userValue)
 
 //Set the global setting for the I2C address we want to communicate with
 //Default is 0x77
-void BME280::setI2CAddress(uint8_t address)
+void tiny::BME280::setI2CAddress(uint8_t address)
 {
 	settings.I2CAddress = address; //Set the I2C address for this device
 }
 
 //Check the measuring bit and return true while device is taking measurement
-bool BME280::isMeasuring(void)
+bool tiny::BME280::isMeasuring(void)
 {
 	uint8_t stat = readRegister(BME280_STAT_REG);
 	return(stat & (1<<3)); //If the measuring bit (3) is set, return true
 }
 
 //Strictly resets.  Run .begin() afterwards
-void BME280::reset( void )
+void tiny::BME280::reset( void )
 {
 	writeRegister(BME280_RST_REG, 0xB6);
 	
@@ -357,7 +357,7 @@ void BME280::reset( void )
 //  Pressure Section
 //
 //****************************************************************************//
-uint32_t BME280::readFixedPressure( void )
+uint32_t tiny::BME280::readFixedPressure( void )
 {
 	// Returns pressure in Pa as unsigned 32 bit integer. Output value of "96386" equals 96386Pa = 963.86 hPa
 	uint8_t buffer[3];
@@ -397,7 +397,7 @@ uint32_t BME280::readFixedPressure( void )
 //  Humidity Section
 //
 //****************************************************************************//
-uint32_t BME280::readFixedHumidity( void )
+uint32_t tiny::BME280::readFixedHumidity( void )
 {
 	// Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 	// Output value of “47445” represents 47445/1024 = 46.333 %RH
@@ -423,7 +423,7 @@ uint32_t BME280::readFixedHumidity( void )
 //
 //****************************************************************************//
 
-int32_t BME280::readFixedTempC( void )
+int32_t tiny::BME280::readFixedTempC( void )
 {
 	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
 	// t_fine carries fine temperature as global value
@@ -444,7 +444,7 @@ int32_t BME280::readFixedTempC( void )
 	return ((t_fine * 5 + 128) >> 8) + settings.tempCorrection;
 }
 
-int32_t BME280::readFixedTempF( void )
+int32_t tiny::BME280::readFixedTempF( void )
 {
 	return (readFixedTempC() * 9) / 5 + 3200;
 }
@@ -454,7 +454,7 @@ int32_t BME280::readFixedTempF( void )
 //  Utility
 //
 //****************************************************************************//
-void BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, uint8_t length)
+void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, uint8_t length)
 {
 	//define pointer that will point to the external space
 	uint8_t i = 0;
@@ -523,7 +523,7 @@ void BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, uint8_t
 
 }
 
-uint8_t BME280::readRegister(uint8_t offset)
+uint8_t tiny::BME280::readRegister(uint8_t offset)
 {
 	//Return value
 	uint8_t result = 0;
@@ -579,7 +579,7 @@ uint8_t BME280::readRegister(uint8_t offset)
 	return result;
 }
 
-int16_t BME280::readRegisterInt16( uint8_t offset )
+int16_t tiny::BME280::readRegisterInt16( uint8_t offset )
 {
 	uint8_t myBuffer[2];
 	readRegisterRegion(myBuffer, offset, 2);  //Does memory transfer
@@ -588,7 +588,7 @@ int16_t BME280::readRegisterInt16( uint8_t offset )
 	return output;
 }
 
-void BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)
+void tiny::BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)
 {
 	switch (settings.commInterface)
 	{
