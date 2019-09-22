@@ -1,5 +1,15 @@
 {
     "name": "Tiny BME280",
+    "keywords": "sensor, bme, bmp, 280",
+    "description": "A tiny library to drive the Bosch BME280 Altimeter and Pressure sensor. This library aims to minimize the memory footprint in order to use it with tiny MCUs (like Atmel ATtiny85/84).",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/fabyte/Tiny_BME280_Arduino_Library.git"
+    },
+    "version": "1.0.0",
+    "frameworks": "arduino",
+    "platforms": "*",
     "build": {
         "includeDir": ".",
         "srcFilter": [
