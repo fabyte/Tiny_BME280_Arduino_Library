@@ -399,7 +399,7 @@ uint32_t tiny::BME280::readFixedPressure( void )
 	var2 = (((var1>>2) * (var1>>2)) >> 11) * (int32_t)calibration.dig_P6;
 	var2 = var2 + ((var1 * ((int32_t)calibration.dig_P5)<<1));
 	var2 = (var2>>2) + (((int32_t)calibration.dig_P4)<<16);
-	var1 = (((int32_t)calibration.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + ((((((int32_t)calibration.dig_P2) * var1)>>1))>>18);
+	var1 = ((((int32_t)calibration.dig_P3 * (((var1>>2) * (var1>>2)) >> 13 )) >> 3) + (((((int32_t)calibration.dig_P2) * var1)>>1)))>>18;
 	var1 = ((((32768+var1))*((int32_t)calibration.dig_P1))>>15);
 	if (var1 == 0)
 	{
