@@ -72,12 +72,16 @@ class BME280
 	//(over-ride after construction if desired)
     BME280( void );
 	
+	//Call to set the Sensor Mode to MODE_NORMAL.
+	//This also gets the SensorCalibration constants
+	uint8_t begin( void );
 	#ifdef TINY_BME280_SPI
     bool beginSPI(uint8_t csPin); //Communicate using SPI
 	#endif
 	#ifdef TINY_BME280_I2C
-	void setI2CAddress(uint8_t i2caddress); //Set the address the library should use to communicate. Use if address jumper is closed (0x76).
-    bool beginI2C(TwoWire &wirePort = Wire); //Called when user provides Wire port
+	void setI2CAddress(uint8_t i2caddress);		//Set the address the library should use to communicate. Use if address jumper is closed (0x76).
+	bool beginI2C(uint8_t i2caddress);			//Set the address the library should use to communicate and begin communication over I2C.
+    bool beginI2C(TwoWire &wirePort = Wire);	//Begin comm with BME280 over I2C. Call when user provides Wire port
 	#ifdef SoftwareWire_h
 	bool beginI2C(SoftwareWire &wirePort); //Called when user provides a softwareWire port
 	#endif
@@ -106,6 +110,22 @@ class BME280
 	int32_t readFixedTempC( void );
 	int32_t readFixedTempF( void );
 	
+private:
+	uint8_t checkSampleValue(uint8_t userValue); //Checks for valid over sample values
+
+	#ifdef TINY_BME280_SPI
+	uint8_t chipSelectPin = 10;		//Select CS pin for SPI
+	#endif
+	#ifdef TINY_BME280_I2C
+	uint8_t I2CAddress = 0x77;		//Default, jumper open is 0x77
+    uint8_t _wireType = HARD_WIRE;	//Default to Wire.h
+    TwoWire *_hardPort = NO_WIRE;	//The generic connection to user's chosen I2C hardware
+    
+	#ifdef SoftwareWire_h
+	SoftwareWire *_softPort = NO_WIRE; //Or, the generic connection to software wire port
+	#endif // SoftwareWire_h
+	#endif // TINY_BME280_I2C
+
     //The following utilities read and write
 
 	//ReadRegisterRegion takes a uint8 array address as input and reads
@@ -118,25 +138,6 @@ class BME280
 	int16_t readRegisterInt16( uint8_t offset );
 	//Writes a byte;
     void writeRegister(uint8_t, uint8_t);
-
-private:
-	//Call to apply SensorSettings.
-	//This also gets the SensorCalibration constants
-	uint8_t begin( void );
-	uint8_t checkSampleValue(uint8_t userValue); //Checks for valid over sample values
-
-	#ifdef TINY_BME280_SPI
-	uint8_t chipSelectPin;
-	#endif
-	#ifdef TINY_BME280_I2C
-	uint8_t I2CAddress;
-    uint8_t _wireType = HARD_WIRE; //Default to Wire.h
-    TwoWire *_hardPort = NO_WIRE; //The generic connection to user's chosen I2C hardware
-    
-	#ifdef SoftwareWire_h
-	SoftwareWire *_softPort = NO_WIRE; //Or, the generic connection to software wire port
-	#endif // SoftwareWire_h
-	#endif // TINY_BME280_I2C
 };
 
 } // namespace tiny

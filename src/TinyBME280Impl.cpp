@@ -65,13 +65,7 @@ Distributed as-is; no warranty is given.
 tiny::BME280::BME280( void )
 {
 	//Construct with these default settings
-
-#ifdef TINY_BME280_SPI
-	chipSelectPin = 10; //Select CS pin for SPI
-#endif
-
 #ifdef TINY_BME280_I2C
-	I2CAddress = 0x77; //Default, jumper open is 0x77
 	_hardPort = &Wire; //Default to Wire port
 #endif
 
@@ -178,11 +172,22 @@ bool tiny::BME280::beginSPI(uint8_t csPin)
 #endif
 
 #ifdef TINY_BME280_I2C
-//Set the global setting for the I2C address we want to communicate with
-//Default is 0x77
+//Set the address the library should use to communicate.
+//Use if address jumper is closed (0x76). Default is 0x77
 void tiny::BME280::setI2CAddress(uint8_t address)
 {
 	I2CAddress = address; //Set the I2C address for this device
+}
+
+//Set the address the library should use to communicate and begin communication over I2C.
+//Use if address jumper is closed (0x76). Default is 0x77
+bool tiny::BME280::beginI2C(uint8_t address)
+{
+	I2CAddress = address; //Set the I2C address for this device
+
+	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
+	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
+	return(false);
 }
 
 //Begin comm with BME280 over I2C
@@ -191,7 +196,6 @@ bool tiny::BME280::beginI2C(TwoWire &wirePort)
 	_hardPort = &wirePort;
 	_wireType = HARD_WIRE;
 	
-	//settings.I2CAddress = 0x77; //We assume user has set the I2C address using setI2CAddress()
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
 	return(false);
@@ -203,9 +207,6 @@ bool tiny::BME280::beginI2C(SoftwareWire& wirePort)
 {
 	_softPort = &wirePort;
 	_wireType = SOFT_WIRE;
-
-	settings.commInterface = I2C_MODE;
-	//settings.I2CAddress = 0x77; //We assume user has set the I2C address using setI2CAddress()
 
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
