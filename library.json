@@ -1,0 +1,10 @@
+{
+    "name": "Tiny BME280",
+    "build": {
+        "includeDir": ".",
+        "srcFilter": [
+            "-<src/*.cpp>",
+            "-<src/*.h>"
+        ]
+    }
+}

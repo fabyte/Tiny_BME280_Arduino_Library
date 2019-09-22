@@ -1,24 +1,11 @@
 /******************************************************************************
-SparkFunBME280.cpp
-BME280 Arduino and Teensy Driver
-Marshall Taylor @ SparkFun Electronics
-May 20, 2015
-https://github.com/sparkfun/BME280_Breakout
-
-Resources:
-Uses Wire.h for i2c operation
-Uses SPI.h for SPI operation
-
-Development environment specifics:
-Arduino IDE 1.8.5
-Teensy loader 1.23
+TinyBME280.cpp
 
 This code is released under the [MIT License](http://opensource.org/licenses/MIT).
 Please review the LICENSE.md file included with this example. If you have any questions 
 or concerns with licensing, please contact techsupport@sparkfun.com.
 Distributed as-is; no warranty is given.
 ******************************************************************************/
-//See SparkFunBME280.h for additional topology notes.
 
 #include "TinyBME280.h"
 
@@ -33,13 +20,15 @@ tiny::BME280::BME280( void )
 {
 	//Construct with these default settings
 
-	settings.commInterface = I2C_MODE; //Default to I2C
+#ifdef TINY_BME280_SPI
+	chipSelectPin = 10; //Select CS pin for SPI
+#endif
 
-	settings.I2CAddress = 0x77; //Default, jumper open is 0x77
+#ifdef TINY_BME280_I2C
+	I2CAddress = 0x77; //Default, jumper open is 0x77
 	_hardPort = &Wire; //Default to Wire port
+#endif
 
-	settings.chipSelectPin = 10; //Select CS pin for SPI
-	
 	settings.tempCorrection = 0; // correction of temperature - added to the result
 }
 
@@ -57,59 +46,51 @@ uint8_t tiny::BME280::begin()
 {
 	delay(2);  //Make sure sensor had enough time to turn on. BME280 requires 2ms to start up.
 
-	//Check the settings structure values to determine how to setup the device
-	switch (settings.commInterface)
+	#ifdef TINY_BME280_SPI
+	// start the SPI library:
+	SPI.begin();
+	#ifdef ARDUINO_ARCH_ESP32
+	SPI.setFrequency(1000000);
+	// Data is read and written MSb first.
+	SPI.setBitOrder(SPI_MSBFIRST);
+	// Like the standard arduino/teensy comment below, mode0 seems wrong according to standards
+	// but conforms to the timing diagrams when used for the ESP32
+	SPI.setDataMode(SPI_MODE0);
+	#else
+	// Maximum SPI frequency is 10MHz, could divide by 2 here:
+	SPI.setClockDivider(SPI_CLOCK_DIV32);
+	// Data is read and written MSb first.
+	SPI.setBitOrder(MSBFIRST);
+	// Data is captured on rising edge of clock (CPHA = 0)
+	// Base value of the clock is HIGH (CPOL = 1)
+	// This was SPI_MODE3 for RedBoard, but I had to change to
+	// MODE0 for Teensy 3.1 operation
+	SPI.setDataMode(SPI_MODE3);
+	#endif
+	// initialize the  data ready and chip select pins:
+	pinMode(chipSelectPin, OUTPUT);
+	digitalWrite(chipSelectPin, HIGH);
+	#endif
+
+
+	#ifdef TINY_BME280_I2C
+	switch(_wireType)
 	{
-
-	case I2C_MODE:
-		
-		switch(_wireType)
-		{
-			case(HARD_WIRE):
-				_hardPort->begin(); //The caller can begin their port and set the speed. We just confirm it here otherwise it can be hard to debug.
-				break;
-			case(SOFT_WIRE):
-			#ifdef SoftwareWire_h
-				_softPort->begin(); //The caller can begin their port and set the speed. We just confirm it here otherwise it can be hard to debug.
-			#endif
-				break;
-		}
-		break;
-
-	case SPI_MODE:
-		// start the SPI library:
-		SPI.begin();
-		#ifdef ARDUINO_ARCH_ESP32
-		SPI.setFrequency(1000000);
-		// Data is read and written MSb first.
-		SPI.setBitOrder(SPI_MSBFIRST);
-		// Like the standard arduino/teensy comment below, mode0 seems wrong according to standards
-		// but conforms to the timing diagrams when used for the ESP32
-		SPI.setDataMode(SPI_MODE0);
-		#else
-		// Maximum SPI frequency is 10MHz, could divide by 2 here:
-		SPI.setClockDivider(SPI_CLOCK_DIV32);
-		// Data is read and written MSb first.
-		SPI.setBitOrder(MSBFIRST);
-		// Data is captured on rising edge of clock (CPHA = 0)
-		// Base value of the clock is HIGH (CPOL = 1)
-		// This was SPI_MODE3 for RedBoard, but I had to change to
-		// MODE0 for Teensy 3.1 operation
-		SPI.setDataMode(SPI_MODE3);
+		case(HARD_WIRE):
+			_hardPort->begin(); //The caller can begin their port and set the speed. We just confirm it here otherwise it can be hard to debug.
+			break;
+		case(SOFT_WIRE):
+		#ifdef SoftwareWire_h
+			_softPort->begin(); //The caller can begin their port and set the speed. We just confirm it here otherwise it can be hard to debug.
 		#endif
-		// initialize the  data ready and chip select pins:
-		pinMode(settings.chipSelectPin, OUTPUT);
-		digitalWrite(settings.chipSelectPin, HIGH);
-		break;
-
-	default:
-		break;
+			break;
 	}
+	#endif
 
 	//Check communication with IC before anything else
 	uint8_t chipID = readRegister(BME280_CHIP_ID_REG); //Should return 0x60 or 0x58
 	if(chipID != 0x58 && chipID != 0x60) // Is this BMP or BME?
-	return(chipID); //This is not BMP nor BME!
+		return(chipID); //This is not BMP nor BME!
 
 	//Reading all compensation data, range 0x88:A1, 0xE1:E7
 	calibration.dig_T1 = ((uint16_t)((readRegister(BME280_DIG_T1_MSB_REG) << 8) + readRegister(BME280_DIG_T1_LSB_REG)));
@@ -138,15 +119,24 @@ uint8_t tiny::BME280::begin()
 	return(readRegister(BME280_CHIP_ID_REG)); //Should return 0x60
 }
 
+#ifdef TINY_BME280_SPI
 //Begin comm with BME280 over SPI
 bool tiny::BME280::beginSPI(uint8_t csPin)
 {
-	settings.chipSelectPin = csPin;
-	settings.commInterface = SPI_MODE;
+	chipSelectPin = csPin;
 	
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
 	return(false);
+}
+#endif
+
+#ifdef TINY_BME280_I2C
+//Set the global setting for the I2C address we want to communicate with
+//Default is 0x77
+void tiny::BME280::setI2CAddress(uint8_t address)
+{
+	I2CAddress = address; //Set the I2C address for this device
 }
 
 //Begin comm with BME280 over I2C
@@ -154,8 +144,6 @@ bool tiny::BME280::beginI2C(TwoWire &wirePort)
 {
 	_hardPort = &wirePort;
 	_wireType = HARD_WIRE;
-
-	settings.commInterface = I2C_MODE;
 	
 	//settings.I2CAddress = 0x77; //We assume user has set the I2C address using setI2CAddress()
 	if(begin() == 0x58) return(true); //Begin normal init with these settings. Should return chip ID of 0x58 for BMP
@@ -177,7 +165,8 @@ bool tiny::BME280::beginI2C(SoftwareWire& wirePort)
 	if(begin() == 0x60) return(true); //Begin normal init with these settings. Should return chip ID of 0x60 for BME
 	return(false);
 }
-#endif
+#endif // SoftwareWire_h
+#endif // TINY_BME280_I2C
 
 //Set the mode bits in the ctrl_meas register
 // Mode 00 = Sleep
@@ -331,13 +320,6 @@ uint8_t tiny::BME280::checkSampleValue(uint8_t userValue)
 	}
 }
 
-//Set the global setting for the I2C address we want to communicate with
-//Default is 0x77
-void tiny::BME280::setI2CAddress(uint8_t address)
-{
-	settings.I2CAddress = address; //Set the I2C address for this device
-}
-
 //Check the measuring bit and return true while device is taking measurement
 bool tiny::BME280::isMeasuring(void)
 {
@@ -460,66 +442,59 @@ void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, u
 	uint8_t i = 0;
 	char c = 0;
 
-	switch (settings.commInterface)
+	#ifdef TINY_BME280_I2C
+	switch(_wireType)
 	{
+		case(HARD_WIRE):
+			_hardPort->beginTransmission(I2CAddress);
+			_hardPort->write(offset);
+			_hardPort->endTransmission();
 
-	case I2C_MODE:
-		switch(_wireType)
-		{
-			case(HARD_WIRE):
-				_hardPort->beginTransmission(settings.I2CAddress);
-				_hardPort->write(offset);
-				_hardPort->endTransmission();
+			// request bytes from slave device
+			_hardPort->requestFrom(I2CAddress, length);
+			while ( (_hardPort->available()) && (i < length))  // slave may send less than requested
+			{
+				c = _hardPort->read(); // receive a byte as character
+				*outputPointer = c;
+				outputPointer++;
+				i++;
+			}
+			break;
+		case(SOFT_WIRE):
+		#ifdef SoftwareWire_h
+			_softPort->beginTransmission(settings.I2CAddress);
+			_softPort->write(offset);
+			_softPort->endTransmission();
 
-				// request bytes from slave device
-				_hardPort->requestFrom(settings.I2CAddress, length);
-				while ( (_hardPort->available()) && (i < length))  // slave may send less than requested
-				{
-					c = _hardPort->read(); // receive a byte as character
-					*outputPointer = c;
-					outputPointer++;
-					i++;
-				}
-				break;
-			case(SOFT_WIRE):
-			#ifdef SoftwareWire_h
-				_softPort->beginTransmission(settings.I2CAddress);
-				_softPort->write(offset);
-				_softPort->endTransmission();
-
-				// request bytes from slave device
-				_softPort->requestFrom(settings.I2CAddress, length);
-				while ( (_softPort->available()) && (i < length))  // slave may send less than requested
-				{
-					c = _softPort->read(); // receive a byte as character
-					*outputPointer = c;
-					outputPointer++;
-					i++;
-				}
-			#endif
-				break;
-		}
-		break;
-
-	case SPI_MODE:
-		// take the chip select low to select the device:
-		digitalWrite(settings.chipSelectPin, LOW);
-		// send the device the register you want to read:
-		SPI.transfer(offset | 0x80);  //Ored with "read request" bit
-		while ( i < length ) // slave may send less than requested
-		{
-			c = SPI.transfer(0x00); // receive a byte as character
-			*outputPointer = c;
-			outputPointer++;
-			i++;
-		}
-		// take the chip select high to de-select:
-		digitalWrite(settings.chipSelectPin, HIGH);
-		break;
-
-	default:
-		break;
+			// request bytes from slave device
+			_softPort->requestFrom(settings.I2CAddress, length);
+			while ( (_softPort->available()) && (i < length))  // slave may send less than requested
+			{
+				c = _softPort->read(); // receive a byte as character
+				*outputPointer = c;
+				outputPointer++;
+				i++;
+			}
+		#endif
+			break;
 	}
+	#endif
+	
+	#ifdef TINY_BME280_SPI
+	// take the chip select low to select the device:
+	digitalWrite(chipSelectPin, LOW);
+	// send the device the register you want to read:
+	SPI.transfer(offset | 0x80);  //Ored with "read request" bit
+	while ( i < length ) // slave may send less than requested
+	{
+		c = SPI.transfer(0x00); // receive a byte as character
+		*outputPointer = c;
+		outputPointer++;
+		i++;
+	}
+	// take the chip select high to de-select:
+	digitalWrite(chipSelectPin, HIGH);
+	#endif
 
 }
 
@@ -527,55 +502,50 @@ uint8_t tiny::BME280::readRegister(uint8_t offset)
 {
 	//Return value
 	uint8_t result = 0;
+	
+	#ifdef TINY_BME280_I2C
 	uint8_t numBytes = 1;
-	switch (settings.commInterface) {
+	switch(_wireType)
+	{
+		case(HARD_WIRE):
+			_hardPort->beginTransmission(I2CAddress);
+			_hardPort->write(offset);
+			_hardPort->endTransmission();
 
-	case I2C_MODE:
-		switch(_wireType)
-		{
-			case(HARD_WIRE):
-				_hardPort->beginTransmission(settings.I2CAddress);
-				_hardPort->write(offset);
-				_hardPort->endTransmission();
-
-				_hardPort->requestFrom(settings.I2CAddress, numBytes);
-				while ( _hardPort->available() ) // slave may send less than requested
-				{
-					result = _hardPort->read(); // receive a byte as a proper uint8_t
-				}
-				break;
-			
-			case(SOFT_WIRE):
-			#ifdef SoftwareWire_h
-				_softPort->beginTransmission(settings.I2CAddress);
-				_softPort->write(offset);
-				_softPort->endTransmission();
-
-				_softPort->requestFrom(settings.I2CAddress, numBytes);
-				while ( _softPort->available() ) // slave may send less than requested
-				{
-					result = _softPort->read(); // receive a byte as a proper uint8_t
-				}
-			#endif
-				break;
-		}
+			_hardPort->requestFrom(I2CAddress, numBytes);
+			while ( _hardPort->available() ) // slave may send less than requested
+			{
+				result = _hardPort->read(); // receive a byte as a proper uint8_t
+			}
+			break;
 		
-		break;
+		case(SOFT_WIRE):
+		#ifdef SoftwareWire_h
+			_softPort->beginTransmission(I2CAddress);
+			_softPort->write(offset);
+			_softPort->endTransmission();
 
-	case SPI_MODE:
-		// take the chip select low to select the device:
-		digitalWrite(settings.chipSelectPin, LOW);
-		// send the device the register you want to read:
-		SPI.transfer(offset | 0x80);  //Ored with "read request" bit
-		// send a value of 0 to read the first byte returned:
-		result = SPI.transfer(0x00);
-		// take the chip select high to de-select:
-		digitalWrite(settings.chipSelectPin, HIGH);
-		break;
-
-	default:
-		break;
+			_softPort->requestFrom(I2CAddress, numBytes);
+			while ( _softPort->available() ) // slave may send less than requested
+			{
+				result = _softPort->read(); // receive a byte as a proper uint8_t
+			}
+		#endif
+			break;
 	}
+	#endif
+
+	#ifdef TINY_BME280_SPI
+	// take the chip select low to select the device:
+	digitalWrite(chipSelectPin, LOW);
+	// send the device the register you want to read:
+	SPI.transfer(offset | 0x80);  //Ored with "read request" bit
+	// send a value of 0 to read the first byte returned:
+	result = SPI.transfer(0x00);
+	// take the chip select high to de-select:
+	digitalWrite(chipSelectPin, HIGH);
+	#endif
+
 	return result;
 }
 
@@ -590,43 +560,35 @@ int16_t tiny::BME280::readRegisterInt16( uint8_t offset )
 
 void tiny::BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)
 {
-	switch (settings.commInterface)
+	#ifdef TINY_BME280_I2C
+	switch(_wireType)
 	{
-	case I2C_MODE:
-		//Write the byte
-
-		switch(_wireType)
-		{
-			case(HARD_WIRE):
-				_hardPort->beginTransmission(settings.I2CAddress);
-				_hardPort->write(offset);
-				_hardPort->write(dataToWrite);
-				_hardPort->endTransmission();
-				break;
-			case(SOFT_WIRE):
-			#ifdef SoftwareWire_h
-				_softPort->beginTransmission(settings.I2CAddress);
-				_softPort->write(offset);
-				_softPort->write(dataToWrite);
-				_softPort->endTransmission();
-			#endif
-				break;
-		}
-		break;
-		
-	case SPI_MODE:
-		// take the chip select low to select the device:
-		digitalWrite(settings.chipSelectPin, LOW);
-		// send the device the register you want to read:
-		SPI.transfer(offset & 0x7F);
-		// send a value of 0 to read the first byte returned:
-		SPI.transfer(dataToWrite);
-		// decrement the number of bytes left to read:
-		// take the chip select high to de-select:
-		digitalWrite(settings.chipSelectPin, HIGH);
-		break;
-
-	default:
-		break;
+		case(HARD_WIRE):
+			_hardPort->beginTransmission(I2CAddress);
+			_hardPort->write(offset);
+			_hardPort->write(dataToWrite);
+			_hardPort->endTransmission();
+			break;
+		case(SOFT_WIRE):
+		#ifdef SoftwareWire_h
+			_softPort->beginTransmission(I2CAddress);
+			_softPort->write(offset);
+			_softPort->write(dataToWrite);
+			_softPort->endTransmission();
+		#endif
+			break;
 	}
+	#endif
+
+	#ifdef TINY_BME280_SPI
+	// take the chip select low to select the device:
+	digitalWrite(chipSelectPin, LOW);
+	// send the device the register you want to read:
+	SPI.transfer(offset & 0x7F);
+	// send a value of 0 to read the first byte returned:
+	SPI.transfer(dataToWrite);
+	// decrement the number of bytes left to read:
+	// take the chip select high to de-select:
+	digitalWrite(chipSelectPin, HIGH);
+	#endif
 }
