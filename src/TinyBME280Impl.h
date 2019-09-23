@@ -26,7 +26,7 @@ namespace tiny
 struct SensorSettings
 {
 public:
-	uint32_t tempCorrection; // correction of temperature - added to the result
+	int32_t tempCorrection; // correction of temperature - added to the result
 };
 
 //Used to hold the calibration constants.  These are used

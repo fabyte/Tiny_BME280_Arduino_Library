@@ -470,7 +470,7 @@ int32_t tiny::BME280::readFixedTempC( void )
 	((int32_t)calibration.dig_T3)) >> 14;
 	t_fine = var1 + var2;
 
-	return ((t_fine * 5 + 128) >> 8) + settings.tempCorrection;
+	return ((t_fine * 5 + 128) >> 8) + (settings.tempCorrection * 100);
 }
 
 int32_t tiny::BME280::readFixedTempF( void )
