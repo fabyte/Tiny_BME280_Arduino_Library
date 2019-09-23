@@ -5,11 +5,122 @@ Based on the [SparkFun BME280 Arduino Libary](https://github.com/sparkfun/SparkF
 
 This library allows the user to:
 
-* Read pressure in Pa
 * Read temperature in C or F
+* Read pressure in Pa
 * Read humidity in %RH
 
-More description TBD
+Usage
+-----
+
+```c++
+#define TINY_BME280_SPI
+#include <TinyBME280.h>
+
+tiny::BME280 sensor;
+
+void setup()
+{
+  sensor.begin(); // Start using SPI and CS Pin 10
+}
+
+void loop()
+{
+  auto temp = sensor.readFixedTempC();
+  auto hum = sensor.readFixedHumidity();
+  auto pres = sensor.readFixedPressure();
+}
+```
+See examples for more.
+
+
+Supported Platforms
+-------------------
+
+**PlatformIO**
+
+Just add `https://github.com/fabyte/Tiny_BME280_Arduino_Library` to `lib_deps` section in `platformio.ini`
+<!---
+# TODO: add to PlatformIO library index
+-->
+
+**Arduino IDE**
+
+See the [Arduino Tutorial](https://www.arduino.cc/en/Guide/Libraries) on how to install libraries.
+
+
+Minimized Memory usage
+----------------------
+
+Since memory usage on class/method/function level is not easily determined (because eventually much of the usage appears in the main section), PlatformIO's [memory usage tool](http://docs.platformio.org/en/latest/faq.html#program-memory-usage) is used to estimate the used memory. For this, only the PROGRAMM section is evaluated. 
+
+For the measurement, the sensor library runs in an minimal PlatformIO Generic ATtiny85 project. The base functionality of the project is using the configured communication method (as offset value of used memory). Then, additional functionalities has been activated in order to measure the library's memory usage. 
+
+<details><summary>Example using SPI communication</summary>
+
+```c++
+#define TINY_BME280_SPI
+#include <TinyBME280.h>
+
+tiny::BME280 sensor;
+
+void setup()
+{
+  SPI.begin();
+  #ifdef FUNCTIONALITY_INITIALIZATION
+  sensor.begin();
+  #endif
+}
+
+void loop()
+{
+  SPISettings settings{0, 0, 0};
+  SPI.beginTransaction(settings);
+  SPI.transfer(0xAF);
+
+  #ifdef FUNCTIONALITY_TEMPERATURE
+  auto temp = sensor.readFixedTempC();
+  SPI.transfer(temp);
+  #endif
+  #ifdef FUNCTIONALITY_HUMIDITY
+  auto hum = sensor.readFixedHumidity();
+  SPI.transfer(hum);
+  #endif
+  #ifdef FUNCTIONALITY_PRESSURE
+  auto pres = sensor.readFixedPressure();
+  SPI.transfer(pres);
+  #endif
+
+  SPI.endTransaction();
+}
+```
+</details>
+
+**Results**
+
+Functionality         | original [bytes]  | Tiny BME280 (SPI) [bytes] | Tiny BME280 (I2C) [bytes] |
+---------------------:| :---------------: |:-------------------------:| :------------------------:|
+initialization        | 2414              | 1206 (-50%)               | 1400 (-42%)               |
+read all              | 3792              | 1666 (-56%)               | 1862 (-51%)               |
+**init and read all** | **6206**          | **2872 (-54%)**           | **3262 (-47%)**           |
+read temperature      | 1404              | 420  (-70%)               | 584  (-58%)               |
+read humidity         | 1320              | 544  (-59%)               | 710  (-46%)               |
+read pressure         | 2354              | 776  (-67%)               | 1008 (-57%)               |
+
+As shown in the table, the PROGRAMM memory usage has dropped around 54% using SPI and 47% using I2C communication.
+
+Altough further improvements could be made, the code readability, usability as well as the necessity not to rebuild the whole library and fix bugs were the reasons not to invest more time into this.
+
+
+Changes towards SparkFun's library
+----------------------------------
+
+In order to minimize memory usage the following changes has been made
+
+* Replace all floating point values with fixed point values
+* The Altitude and Due Point calculation methods have been removed. Whoever is willing to replace them using fixed point value calculation is free to create a pull request
+* Communication method (I2C or SPI) is configured at compile time
+* Introduce namespace tiny (e.g. tiny::BME280) in order to distinguish from SparkFun's library
+
 
 License Information
 -------------------
