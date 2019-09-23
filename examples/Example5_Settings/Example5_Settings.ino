@@ -1,19 +1,12 @@
 /*
   Control the various settings of the BME280
-  Nathan Seidle @ SparkFun Electronics
-  March 23, 2018
-
-  Feel like supporting our work? Buy a board from SparkFun!
-  https://www.sparkfun.com/products/14348 - Qwiic Combo Board
-  https://www.sparkfun.com/products/13676 - BME280 Breakout Board
 
   This example shows how to set the various filter, and oversample settings of the BME280.
 */
 
-#include <Wire.h>
-
-#include "SparkFunBME280.h"
-BME280 mySensor;
+#define TINY_BME280_I2C
+#include "TinyBME280.h"
+tiny::BME280 mySensor;
 
 void setup()
 {
@@ -31,28 +24,25 @@ void setup()
   mySensor.setTempOverSample(1); //0 to 16 are valid. 0 disables temp sensing. See table 24.
   mySensor.setPressureOverSample(1); //0 to 16 are valid. 0 disables pressure sensing. See table 23.
   mySensor.setHumidityOverSample(1); //0 to 16 are valid. 0 disables humidity sensing. See table 19.
-  
-  mySensor.setMode(MODE_NORMAL); //MODE_SLEEP, MODE_FORCED, MODE_NORMAL is valid. See 3.3
+
+  mySensor.setMode(tiny::Mode::NORMAL); //MODE_SLEEP, MODE_FORCED, MODE_NORMAL is valid. See 3.3
 }
 
 void loop()
 {
-  Serial.print("Humidity: ");
-  Serial.print(mySensor.readFloatHumidity(), 0);
+  Serial.print(F("Temperature in Celsius:\t\t"));
+  Serial.println(mySensor.readFixedTempC() / 100.0); //Output value of "5123" equals 51.23 DegC.
 
-  Serial.print(" Pressure: ");
-  Serial.print(mySensor.readFloatPressure(), 0);
+  Serial.print(F("Temperature in Fahrenheit:\t"));
+  Serial.println(mySensor.readFixedTempF() / 100.0); //Output value of "7470" equals 74.70 DegF.
 
-  Serial.print(" Alt: ");
-  //Serial.print(mySensor.readFloatAltitudeMeters(), 1);
-  Serial.print(mySensor.readFloatAltitudeFeet(), 1);
+  Serial.print(F("Humidity in %:\t\t\t"));
+  Serial.println(mySensor.readFixedHumidity() / 1000.0); //Output value of "47445" represents 47.445 %RH
 
-  Serial.print(" Temp: ");
-  //Serial.print(mySensor.readTempC(), 2);
-  Serial.print(mySensor.readTempF(), 2);
+  Serial.print(F("Pressure in hPa:\t\t"));
+  Serial.println(mySensor.readFixedPressure() / 100.0); //Output value of "96386" equals 96386Pa = 963.86 hPa
 
   Serial.println();
 
   delay(50);
 }
-

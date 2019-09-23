@@ -1,36 +1,23 @@
-/*
-  Put the BME280 into low power mode (aka Forced Read)
+#include <SoftwareWire.h> //SoftwareWire by Testato. Installed from library manager.
 
-  This example shows how used the 'Forced Mode' to obtain a reading then put the
-  sensor to sleep between readings.
-*/
+//We use pins 6 and 7 in this example but others can be used
+SoftwareWire myWire(6, 7); //SDA, SCL
 
-#define TINY_BME280_SPI
+#define TINY_BME280_I2C
 #include "TinyBME280.h"
 tiny::BME280 mySensor;
 
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("Example showing alternate I2C addresses");
 
-  mySensor.begin();
-  mySensor.setMode(tiny::Mode::SLEEP); //Sleep for now
+  myWire.begin();
+  if(mySensor.beginI2C(myWire) == false) Serial.println("Sensor A connect failed");
 }
 
 void loop()
 {
-  mySensor.setMode(tiny::Mode::FORCED); //Wake up sensor and take reading
-
-  long startTime = millis();
-  while(mySensor.isMeasuring() == false) ; //Wait for sensor to start measurment
-  while(mySensor.isMeasuring() == true) ; //Hang out while sensor completes the reading
-  long endTime = millis();
-
-  //Sensor is now back asleep but we get get the data
-
-	Serial.print("Measure time(ms): ");
-	Serial.println(endTime - startTime);
-
   Serial.print(F("Temperature in Celsius:\t\t"));
   Serial.println(mySensor.readFixedTempC() / 100.0); //Output value of "5123" equals 51.23 DegC.
 
@@ -45,6 +32,5 @@ void loop()
 
   Serial.println();
 
-  delay(1000);
+  delay(50);
 }
-
