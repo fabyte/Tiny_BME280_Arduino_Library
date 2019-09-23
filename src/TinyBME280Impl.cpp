@@ -429,7 +429,7 @@ uint32_t tiny::BME280::readFixedPressure( void )
 uint32_t tiny::BME280::readFixedHumidity( void )
 {
 	// Returns humidity in %RH as unsigned 32 bit integer.
-	// Output value of “47445” represents 47.445 %RH
+	// Output value of "47445" represents 47.445 %RH
 	uint8_t buffer[2];
 	readRegisterRegion(buffer, BME280_HUMIDITY_MSB_REG, 2);
 	int32_t adc_H = ((uint32_t)buffer[0] << 8) | ((uint32_t)buffer[1]);
@@ -454,7 +454,7 @@ uint32_t tiny::BME280::readFixedHumidity( void )
 
 int32_t tiny::BME280::readFixedTempC( void )
 {
-	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of “5123” equals 51.23 DegC.
+	// Returns temperature in DegC, resolution is 0.01 DegC. Output value of "5123" equals 51.23 DegC.
 	// t_fine carries fine temperature as global value
 
 	//get the reading (adc_T);

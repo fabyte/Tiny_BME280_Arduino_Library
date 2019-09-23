@@ -101,13 +101,10 @@ public:
 	void reset( void );
 
 	//Returns the values as 32 bit fixed point integers.
-	uint32_t readFixedPressure( void );
-
-	uint32_t readFixedHumidity( void );
-
-	//Temperature related methods
-	int32_t readFixedTempC( void );
-	int32_t readFixedTempF( void );
+	uint32_t readFixedPressure( void );	//Returns pressure in Pa as unsigned 32 bit integer. Output value of "96386" equals 96386Pa = 963.86 hPa
+	uint32_t readFixedHumidity( void );	//Returns humidity in %RH as unsigned 32 bit integer. Output value of "47445" represents 47.445 %RH
+	int32_t readFixedTempC( void );		//Returns temperature in DegC, resolution is 0.01 DegC. Output value of "5123" equals 51.23 DegC.
+	int32_t readFixedTempF( void );		//Returns temperature in DegF, resolution is 0.01 DegF. Output value of "7470" equals 74.70 DegF.
 
 private:
 	uint8_t checkSampleValue(uint8_t userValue); //Checks for valid over sample values
