@@ -34,7 +34,7 @@ Distributed as-is; no warranty is given.
 #error "Missing define TINY_BME280_SPI or TINY_BME280_I2C"
 #endif
 
-#include "src/TinyBME280Impl.h"
-#include "src/TinyBME280Impl.cpp"
+#include "lib/TinyBME280Impl.h"
+#include "lib/TinyBME280Impl.cpp"
 
 #endif  // End of __TINY_BME280_H__ definition check

@@ -9,12 +9,5 @@
     },
     "version": "1.0.0",
     "frameworks": "arduino",
-    "platforms": "*",
-    "build": {
-        "includeDir": ".",
-        "srcFilter": [
-            "-<src/*.cpp>",
-            "-<src/*.h>"
-        ]
-    }
+    "platforms": "*"
 }
