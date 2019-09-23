@@ -516,12 +516,12 @@ void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, u
 			break;
 		case(SOFT_WIRE):
 		#ifdef SoftwareWire_h
-			_softPort->beginTransmission(settings.I2CAddress);
+			_softPort->beginTransmission(I2CAddress);
 			_softPort->write(offset);
 			_softPort->endTransmission();
 
 			// request bytes from slave device
-			_softPort->requestFrom(settings.I2CAddress, length);
+			_softPort->requestFrom(I2CAddress, length);
 			while ( (_softPort->available()) && (i < length))  // slave may send less than requested
 			{
 				c = _softPort->read(); // receive a byte as character
