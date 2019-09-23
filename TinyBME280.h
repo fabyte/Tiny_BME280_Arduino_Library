@@ -34,11 +34,6 @@ Distributed as-is; no warranty is given.
 #error "Missing define TINY_BME280_SPI or TINY_BME280_I2C"
 #endif
 
-//Sensor Modes
-#define MODE_SLEEP 0b00
-#define MODE_FORCED 0b01
-#define MODE_NORMAL 0b11
-
 #include "src/TinyBME280Impl.h"
 #include "src/TinyBME280Impl.cpp"
 

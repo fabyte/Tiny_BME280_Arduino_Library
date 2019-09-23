@@ -161,7 +161,7 @@ uint8_t tiny::BME280::begin()
 	setStandbyTime(0);
 	setFilter(0);
 
-	setMode(MODE_NORMAL); //Go!
+	setMode(Mode::NORMAL); //Go!
 
 	return(readRegister(BME280_CHIP_ID_REG)); //Should return 0x60
 }
@@ -292,7 +292,7 @@ void tiny::BME280::setTempOverSample(uint8_t overSampleAmount)
 
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
 
-	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
+	setMode(Mode::SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_t bits (7, 6, 5) to overSampleAmount
 	uint8_t controlData = readRegister(BME280_CTRL_MEAS_REG);
@@ -312,7 +312,7 @@ void tiny::BME280::setPressureOverSample(uint8_t overSampleAmount)
 
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
 
-	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
+	setMode(Mode::SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_p bits (4, 3, 2) to overSampleAmount
 	uint8_t controlData = readRegister(BME280_CTRL_MEAS_REG);
@@ -332,7 +332,7 @@ void tiny::BME280::setHumidityOverSample(uint8_t overSampleAmount)
 
 	uint8_t originalMode = getMode(); //Get the current mode so we can go back to it at the end
 
-	setMode(MODE_SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
+	setMode(Mode::SLEEP); //Config will only be writeable in sleep mode, so first go to sleep mode
 
 	//Set the osrs_h bits (2, 1, 0) to overSampleAmount
 	uint8_t controlData = readRegister(BME280_CTRL_HUMIDITY_REG);

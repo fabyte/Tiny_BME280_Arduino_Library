@@ -57,6 +57,15 @@ public:
 
 };
 
+
+//Sensor Modes
+enum Mode
+{
+	SLEEP = 0b00,
+	FORCED = 0b01,
+	NORMAL = 0b11
+};
+
 //This is the main operational class of the driver.
 
 class BME280
