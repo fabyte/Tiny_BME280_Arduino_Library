@@ -154,6 +154,13 @@ uint8_t tiny::BME280::begin()
 	calibration.dig_H5 = ((int16_t)((readRegister(BME280_DIG_H5_MSB_REG) << 4) + ((readRegister(BME280_DIG_H4_LSB_REG) >> 4) & 0x0F)));
 	calibration.dig_H6 = ((int8_t)readRegister(BME280_DIG_H6_REG));
 
+	// apply default settings
+	setTempOverSample(1);
+	setHumidityOverSample(1);
+	setPressureOverSample(1);
+	setStandbyTime(0);
+	setFilter(0);
+
 	setMode(MODE_NORMAL); //Go!
 
 	return(readRegister(BME280_CHIP_ID_REG)); //Should return 0x60
