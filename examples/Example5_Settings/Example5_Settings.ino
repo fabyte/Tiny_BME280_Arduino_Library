@@ -25,7 +25,7 @@ void setup()
   mySensor.setPressureOverSample(1); //0 to 16 are valid. 0 disables pressure sensing. See table 23.
   mySensor.setHumidityOverSample(1); //0 to 16 are valid. 0 disables humidity sensing. See table 19.
 
-  mySensor.setMode(tiny::Mode::NORMAL); //MODE_SLEEP, MODE_FORCED, MODE_NORMAL is valid. See 3.3
+  mySensor.setMode(tiny::Mode::NORMAL); //SLEEP, FORCED, NORMAL is valid. See 3.3
 }
 
 void loop()
