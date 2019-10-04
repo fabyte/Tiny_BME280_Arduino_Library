@@ -27,9 +27,8 @@ void loop()
   long endTime = millis();
 
   //Sensor is now back asleep but we get get the data
-
-	Serial.print("Measure time(ms): ");
-	Serial.println(endTime - startTime);
+  Serial.print("Measure time(ms): ");
+  Serial.println(endTime - startTime);
 
   Serial.print(F("Temperature in Celsius:\t\t"));
   Serial.println(mySensor.readFixedTempC() / 100.0); //Output value of "5123" equals 51.23 DegC.
