@@ -13,20 +13,12 @@ Distributed as-is; no warranty is given.
 namespace tiny
 {
 
-//Class SensorSettings.  This object is used to hold settings data.  The application
-//uses this classes' data directly.  The settings are adopted and sent to the sensor
-//at special times, such as .begin.  Some are used for doing math.
-//
-//This is a kind of bloated way to do this.  The trade-off is that the user doesn't
-//need to deal with #defines or enums with bizarre names.
-//
-//A power user would strip out SensorSettings entirely, and send specific read and
-//write command directly to the IC. (ST #defines below)
-//
+//This object is used to hold settings data. The application uses this classes' data directly.
 struct SensorSettings
 {
 public:
-	int32_t tempCorrection; // correction of temperature - added to the result
+	// Added to temperature result. Value in 0.01 DegC. "-150" equals a correction of -1.5 DegC
+	int16_t tempCorrection;
 };
 
 //Used to hold the calibration constants.  These are used
