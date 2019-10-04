@@ -38,10 +38,7 @@ Supported Platforms
 
 **PlatformIO**
 
-Just add `https://github.com/fabyte/Tiny_BME280_Arduino_Library` to `lib_deps` section in `platformio.ini`
-<!---
-# TODO: add to PlatformIO library index
--->
+Just add `Tiny BME280` to `lib_deps` section in `platformio.ini`
 
 **Arduino IDE**
 
