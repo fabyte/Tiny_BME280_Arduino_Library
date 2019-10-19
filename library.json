@@ -7,7 +7,7 @@
       "type": "git",
       "url": "https://github.com/fabyte/Tiny_BME280_Arduino_Library.git"
     },
-    "version": "1.0.1",
+    "version": "1.0.2",
     "frameworks": "arduino",
     "platforms": "*"
 }
