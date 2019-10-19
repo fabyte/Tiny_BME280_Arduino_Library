@@ -70,7 +70,7 @@ void setup()
 
 void loop()
 {
-  SPISettings settings{0, 0, 0};
+  SPISettings settings{500000, MSBFIRST, SPI_MODE3};
   SPI.beginTransaction(settings);
   SPI.transfer(0xAF);
 
@@ -94,16 +94,25 @@ void loop()
 
 **Results**
 
-Functionality         | original [bytes]  | Tiny BME280 (SPI) [bytes] | Tiny BME280 (I2C) [bytes] |
----------------------:| :---------------: |:-------------------------:| :------------------------:|
-initialization        | 2414              | 1206 (-50%)               | 1400 (-42%)               |
-read all              | 3792              | 1666 (-56%)               | 1862 (-51%)               |
-**init and read all** | **6206**          | **2872 (-54%)**           | **3262 (-47%)**           |
-read temperature      | 1404              | 420  (-70%)               | 584  (-58%)               |
-read humidity         | 1320              | 544  (-59%)               | 710  (-46%)               |
-read pressure         | 2354              | 776  (-67%)               | 1008 (-57%)               |
+Functionality         | original (SPI) [bytes] | Tiny BME280 (SPI) [bytes] | 
+---------------------:| :--------------------: |:-------------------------:| 
+initialization        | 2662                   | 1374 (-48%)               | 
+read all              | 3790                   | 1666 (-56%)               | 
+**init and read all** | **6206**               | **1672 (-73%)**           | 
+read temperature      | 1430                   | 420  (-71%)               | 
+read humidity         | 1342                   | 544  (-59%)               | 
+read pressure         | 2370                   | 776  (-67%)               | 
 
-As shown in the table, the PROGRAMM memory usage has dropped around 54% using SPI and 47% using I2C communication.
+Functionality         |original (I2C) [bytes] | Tiny BME280 (I2C) [bytes] |
+---------------------:|:--------------------: | :------------------------:|
+initialization        |2414                   | 1400 (-42%)               |
+read all              |3792                   | 1862 (-51%)               |
+**init and read all** |**6206**               | **3262 (-47%)**           |
+read temperature      |1404                   | 584  (-58%)               |
+read humidity         |1320                   | 710  (-46%)               |
+read pressure         |2354                   | 1008 (-57%)               |
+
+As shown in the table, the PROGRAMM memory usage has dropped around 73% using SPI and 47% using I2C communication.
 
 Altough further improvements could be made, the code readability, usability as well as the necessity not to rebuild the whole library and fix bugs were the reasons not to invest more time into this.
 
