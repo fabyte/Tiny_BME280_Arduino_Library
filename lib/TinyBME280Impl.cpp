@@ -89,29 +89,10 @@ uint8_t tiny::BME280::begin()
 	#ifdef TINY_BME280_SPI
 	// start the SPI library:
 	SPI.begin();
-	#ifdef ARDUINO_ARCH_ESP32
-	SPI.setFrequency(1000000);
-	// Data is read and written MSb first.
-	SPI.setBitOrder(SPI_MSBFIRST);
-	// Like the standard arduino/teensy comment below, mode0 seems wrong according to standards
-	// but conforms to the timing diagrams when used for the ESP32
-	SPI.setDataMode(SPI_MODE0);
-	#else
-	// Maximum SPI frequency is 10MHz, could divide by 2 here:
-	SPI.setClockDivider(SPI_CLOCK_DIV32);
-	// Data is read and written MSb first.
-	SPI.setBitOrder(MSBFIRST);
-	// Data is captured on rising edge of clock (CPHA = 0)
-	// Base value of the clock is HIGH (CPOL = 1)
-	// This was SPI_MODE3 for RedBoard, but I had to change to
-	// MODE0 for Teensy 3.1 operation
-	SPI.setDataMode(SPI_MODE3);
-	#endif
 	// initialize the  data ready and chip select pins:
 	pinMode(chipSelectPin, OUTPUT);
 	digitalWrite(chipSelectPin, HIGH);
 	#endif
-
 
 	#ifdef TINY_BME280_I2C
 	switch(_wireType)
@@ -535,6 +516,7 @@ void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, u
 	#endif
 
 	#ifdef TINY_BME280_SPI
+	SPI.beginTransaction(spiSettings);
 	// take the chip select low to select the device:
 	digitalWrite(chipSelectPin, LOW);
 	// send the device the register you want to read:
@@ -548,6 +530,7 @@ void tiny::BME280::readRegisterRegion(uint8_t *outputPointer , uint8_t offset, u
 	}
 	// take the chip select high to de-select:
 	digitalWrite(chipSelectPin, HIGH);
+	SPI.endTransaction();
 	#endif
 
 }
@@ -619,6 +602,7 @@ void tiny::BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)
 	#endif
 
 	#ifdef TINY_BME280_SPI
+	SPI.beginTransaction(spiSettings);
 	// take the chip select low to select the device:
 	digitalWrite(chipSelectPin, LOW);
 	// send the device the register you want to read:
@@ -628,5 +612,6 @@ void tiny::BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)
 	// decrement the number of bytes left to read:
 	// take the chip select high to de-select:
 	digitalWrite(chipSelectPin, HIGH);
+	SPI.endTransaction();
 	#endif
 }

@@ -112,6 +112,7 @@ private:
 
 	#ifdef TINY_BME280_SPI
 	uint8_t chipSelectPin = 10;		//Select CS pin for SPI
+	SPISettings spiSettings{TINY_BME280_SPI_CLOCK, MSBFIRST, TINY_BME280_SPI_MODE};
 	#endif
 	#ifdef TINY_BME280_I2C
 	uint8_t I2CAddress = 0x77;		//Default, jumper open is 0x77

@@ -18,6 +18,12 @@ Distributed as-is; no warranty is given.
 
 #if defined(TINY_BME280_SPI)
 #include <SPI.h>
+#ifndef TINY_BME280_SPI_CLOCK
+#define TINY_BME280_SPI_CLOCK 1000000
+#endif
+#ifndef TINY_BME280_SPI_MODE
+#define TINY_BME280_SPI_MODE SPI_MODE0
+#endif
 
 #elif defined(TINY_BME280_I2C)
 #include <Wire.h>
