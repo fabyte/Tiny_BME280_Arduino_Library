@@ -590,26 +590,10 @@ uint8_t tiny::BME280::readRegister(uint8_t offset)
 	#endif
 
 	#ifdef TINY_BME280_SPI
-	// take the chip select low to select the device:
-	digitalWrite(chipSelectPin, LOW);
-	// send the device the register you want to read:
-	SPI.transfer(offset | 0x80);  //Ored with "read request" bit
-	// send a value of 0 to read the first byte returned:
-	result = SPI.transfer(0x00);
-	// take the chip select high to de-select:
-	digitalWrite(chipSelectPin, HIGH);
+	readRegisterRegion(&result, offset, 1);
 	#endif
 
 	return result;
-}
-
-int16_t tiny::BME280::readRegisterInt16( uint8_t offset )
-{
-	uint8_t myBuffer[2];
-	readRegisterRegion(myBuffer, offset, 2);  //Does memory transfer
-	int16_t output = (int16_t)myBuffer[0] | int16_t(myBuffer[1] << 8);
-
-	return output;
 }
 
 void tiny::BME280::writeRegister(uint8_t offset, uint8_t dataToWrite)

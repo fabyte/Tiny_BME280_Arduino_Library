@@ -130,9 +130,6 @@ private:
 	void readRegisterRegion(uint8_t*, uint8_t, uint8_t );
 	//readRegister reads one register
 	uint8_t readRegister(uint8_t);
-	//Reads two regs, LSByte then MSByte order, and concatenates them
-	//Used for two-byte reads
-	int16_t readRegisterInt16( uint8_t offset );
 	//Writes a byte;
 	void writeRegister(uint8_t, uint8_t);
 };
