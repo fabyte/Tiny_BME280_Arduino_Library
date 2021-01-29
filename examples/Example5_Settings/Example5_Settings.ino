@@ -1,7 +1,7 @@
 /*
   Control the various settings of the BME280
 
-  This example shows how to set the various filter, and oversample settings of the BME280.
+  This example shows how to set the various filter and oversample settings of the BME280.
 */
 
 #define TINY_BME280_I2C
@@ -11,7 +11,7 @@ tiny::BME280 mySensor;
 void setup()
 {
   Serial.begin(9600);
-  Serial.println("Example showing alternate I2C addresses");
+  Serial.println("Example showing how to set the various filter and oversample settings of the BME280");
 
   Wire.begin();
   Wire.setClock(400000); //Increase to fast I2C speed!
